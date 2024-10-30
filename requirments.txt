@@ -1,0 +1,9 @@
+
+azure-ai-inference
+keybert 
+whoosh 
+transformers 
+faiss-gpu 
+torch 
+pinecone 
+sentence_transformers

@@ -1,0 +1,4 @@
+{
+ "model_names" : ["gpt-4o" ,"gpt-4o-mini", "Phi-3.5-MoE-instruct", "Phi-3.5-mini-instruct", "Phi-3.5-vision-instruct", "Phi-3-medium-128k-instruct", "Phi-3-medium-4k-instruct",  "Phi-3-mini-128k-instruct", "Phi-3-mini-4k-instruct","Phi-3-small-128k-instruct", "Phi-3-small-8k-instruct","AI21-Jamba-1.5-Large", "AI21-Jamba-1.5-Mini", "Cohere-command-r", "Cohere-command-r-08-2024", "Cohere-command-r-plus", "Cohere-command-r-plus-08-2024","Llama-3.2-11B-Vision-Instruct", "Llama-3.2-90B-Vision-Instruct","Meta-Llama-3.1-405B-Instruct","Meta-Llama-3.1-70B-Instruct","Meta-Llama-3.1-8B-Instruct","Meta-Llama-3-70B-Instruct","Meta-Llama-3-8B-Instruct","Mistral-Nemo", "Mistral-large", "Mistral-large-2407" ,"Mistral-small"]
+
+}
