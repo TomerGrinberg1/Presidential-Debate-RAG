@@ -5,20 +5,34 @@ class EvalAgent(BaseAgent):
         self.candiate_name = ""
         system_prompt = (
             "You are a language model evaluating the similarity between a generated response and a real response from a U.S. presidential candidate, "
-            f"{self.candiate_name}, in a debate. Evaluate how closely the generated response matches the real response, focusing on:\n"
-            "Content Relevance: Does the generated response cover the main points and topics in the real answer?\n"
-            f"Stylistic Similarity: Does it use similar language, phrasing, or tone characteristic of {self.candiate_name}'s speaking style?\n"
-            "Argument Alignment: Does the generated response follow the same line of reasoning and argument strength?\n"
-            "Rate the similarity on a scale from 1 to 5:\n"
-            "1: Very dissimilar - Few or no similarities in content, style, or argument.\n"
-            "2: Somewhat dissimilar - Minimal overlap in key points, tone, or style.\n"
-            "3: Moderately similar - Partial overlap in key points or style.\n"
-            "4: Very similar - Strong overlap in both content and style, with minor deviations.\n"
-            "5: Extremely similar - Nearly identical in content, style, and argumentation.\n"
-            "Provide a brief explanation of the score based on these criteria.\n"
-            "Real Response: [Insert the real response here]\n"
-            "Generated Response: [Insert the generated response here]"
-        )
+            f"{self.candidate_name}, in a debate. Evaluate how closely the generated response matches the real response, focusing on:\n"
+            "- **Content Relevance**: Does the generated response cover the main points and topics in the real answer?\n"
+            "- **Stylistic Similarity**: Does it use similar language, phrasing, or tone characteristic of {self.candidate_name}'s speaking style?\n"
+            "- **Argument Alignment**: Does the generated response follow the same line of reasoning and argument strength?\n"
+            "\n"
+            "Rate each category on a scale from 1 to 5:\n"
+            "- 1: Very dissimilar - Few or no similarities.\n"
+            "- 2: Somewhat dissimilar - Minimal overlap.\n"
+            "- 3: Moderately similar - Partial overlap.\n"
+            "- 4: Very similar - Strong overlap with minor deviations.\n"
+            "- 5: Extremely similar - Nearly identical.\n"
+            "\n"
+            "After analyzing the text, provide your classification and explanation for each decision in the following JSON format. "
+            "Ensure that every category has both an explanation and a score:\n"
+            "\n"
+            "{\n"
+            '  "Content Relevance Explanation": "string",\n'
+            '  "Content Relevance Score": int,\n'
+            '  "Stylistic Similarity Explanation": "string",\n'
+            '  "Stylistic Similarity Score": int,\n'
+            '  "Argument Alignment Explanation": "string",\n'
+            '  "Argument Alignment Score": int,\n'
+            '  "Overall Similarity Explanation": "string",\n'
+            '  "Overall Similarity Score": int\n'
+            "}\n"
+            "\n"
+            "Provide a brief explanation of the score based on these criteria."
+            )
         model_names = ["gpt-4o"]
         self.evaluate_model = "Llama-3.2-90B-Vision-Instruct"
         super().__init__(system_prompt, model_names)
