@@ -4,37 +4,29 @@ class EvalAgent(BaseAgent):
     def __init__(self):
         self.candiate_name = ""
         system_prompt = (
-            "You are a language model evaluating the similarity between a generated response and a real response from a U.S. presidential candidate, "
-            f"{self.candidate_name}, in a debate. Evaluate how closely the generated response matches the real response, focusing on:\n"
-            "- **Content Relevance**: Does the generated response cover the main points and topics in the real answer?\n"
-            "- **Stylistic Similarity**: Does it use similar language, phrasing, or tone characteristic of {self.candidate_name}'s speaking style?\n"
-            "- **Argument Alignment**: Does the generated response follow the same line of reasoning and argument strength?\n"
-            "\n"
-            "Rate each category on a scale from 1 to 5:\n"
-            "- 1: Very dissimilar - Few or no similarities.\n"
-            "- 2: Somewhat dissimilar - Minimal overlap.\n"
-            "- 3: Moderately similar - Partial overlap.\n"
-            "- 4: Very similar - Strong overlap with minor deviations.\n"
-            "- 5: Extremely similar - Nearly identical.\n"
-            "\n"
-            "After analyzing the text, provide your classification and explanation for each decision in the following JSON format. "
-            "Ensure that every category has both an explanation and a score:\n"
-            "\n"
-            "{\n"
-            '  "Content Relevance Explanation": "string",\n'
-            '  "Content Relevance Score": int,\n'
-            '  "Stylistic Similarity Explanation": "string",\n'
-            '  "Stylistic Similarity Score": int,\n'
-            '  "Argument Alignment Explanation": "string",\n'
-            '  "Argument Alignment Score": int,\n'
-            '  "Overall Similarity Explanation": "string",\n'
-            '  "Overall Similarity Score": int\n'
-            "}\n"
-            "\n"
-            "Provide a brief explanation of the score based on these criteria."
+            """
+                You are a language model tasked with evaluating the similarity between a real response given by a U.S. presidential candidate, {self.candidate_name}, during a debate, and a generated response. Your goal is to assess how well the generated response mirrors the real response.
+
+                Consider aspects such as the content, style, and reasoning used by the candidate, but do not limit yourself to fixed criteria. Each evaluation may emphasize different dimensions of similarity, depending on what stands out most in the given responses.
+
+                After your analysis, rate the similarity on a scale from 1 to 5:
+                - 1: Very dissimilar - Few or no similarities.
+                - 2: Somewhat dissimilar - Minimal overlap.
+                - 3: Moderately similar - Partial overlap.
+                - 4: Very similar - Strong overlap with minor deviations.
+                - 5: Extremely similar - Nearly identical.
+
+                Provide your classification in the form of a JSON object, ensuring that your explanation details the relevant aspects of similarity or divergence. Use a chain of thought to arrive at your conclusions, detailing your reasoning step by step.
+                Your response should be formatted as follows:
+                {
+                "Explanation": "string",
+                "Similarity": int [1-5]
+                }
+
+                """
             )
         model_names = ["gpt-4o"]
-        self.evaluate_model = "Llama-3.2-90B-Vision-Instruct"
+        self.evaluate_model = "gpt-4o"
         super().__init__(system_prompt, model_names)
         
     def evaluate_response(self, real_response, generated_response):
