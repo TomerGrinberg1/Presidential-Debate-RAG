@@ -1,91 +1,131 @@
 import json
-import statistics
+import os
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
-# Set academic-style theme for Seaborn plots
-sns.set_theme(style="whitegrid", context="paper")
+# Function to load the candidate mapping from the real debate JSON
+def load_candidates_from_real_json(file_path):
+    candidate_mapping = {}
+    with open(file_path, 'r', encoding='utf-8') as file:
+        real_debate_data = json.load(file)
+        for entry in real_debate_data:
+            question = entry.get("question", "")
+            candidate = entry.get("candidate", "").lower()
+            if question and candidate:
+                candidate_mapping[question] = candidate
+    return candidate_mapping
 
-def load_json_data(file_path):
-    """Load JSON data from a file."""
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-    return data
+# Function to extract similarity scores and associate them with candidates
+def extract_scores_by_candidate(file_path, candidate_mapping):
+    scores = {'trump': [], 'biden': []}
+    with open(file_path, 'r', encoding='utf-8') as file:
+        debate_data = json.load(file)
+        for entry in debate_data:
+            question = entry.get("question", "")
+            evaluation = entry.get("evaluation using Llama-3.2-90B-Vision-Instruct") or \
+                         entry.get("evaluation using gpt 4o") 
 
-def extract_similarity_scores(debate_data):
-    """Extract similarity scores from the debate data."""
-    scores = []
-    for entry in debate_data:
-        evaluation = entry.get("evaluation", {})
-        if isinstance(evaluation, dict):
-            for model, eval_content in evaluation.items():
-                try:
-                    # Check if the content is a valid JSON string
-                    if eval_content.strip():
-                        eval_dict = json.loads(eval_content)
-                        score = eval_dict.get("Similarity", None)
-                        if score is not None:
-                            scores.append(score)
-                    else:
-                        print(f"Warning: Empty evaluation content for model '{model}' in entry '{entry.get('question', 'unknown question')}'")
-                except json.JSONDecodeError:
-                    print(f"Error: Invalid JSON format for model '{model}' in entry '{entry.get('question', 'unknown question')}'")
-                    # Optional: Log or save the invalid JSON to a file for further inspection
-                    with open('invalid_json_log.txt', 'a') as log_file:
-                        log_file.write(f"Model: {model}, Entry: {entry.get('question', 'unknown question')}\n{eval_content}\n\n")
+            if evaluation and isinstance(evaluation, dict) and question:
+                candidate = candidate_mapping.get(question, "unknown")
+                if candidate in scores:
+                    for model, eval_content in evaluation.items():
+                        try:
+                            if eval_content.strip():
+                                eval_dict = json.loads(eval_content)
+                                score = eval_dict.get("Similarity", None)
+                                if score is not None:
+                                    scores[candidate].append(score)
+                        except json.JSONDecodeError:
+                            pass
     return scores
 
-def analyze_scores(scores):
-    """Analyze and visualize the similarity scores for academic presentation."""
-    if not scores:
-        print("No similarity scores found.")
-        return
+# Function to create a summary DataFrame for plotting
+def create_summary_dataframe(all_scores):
+    data = []
+    for model, methods in all_scores.items():
+        for method, scores in methods.items():
+            trump_scores = pd.Series(scores['trump'])
+            biden_scores = pd.Series(scores['biden'])
+            overall_mean = (trump_scores.mean() + biden_scores.mean()) / 2
+            data.append({
+                'Model': model,
+                'Method': method,
+                'Trump Mean': trump_scores.mean(),
+                'Biden Mean': biden_scores.mean(),
+                'Overall Mean': overall_mean
+            })
+    return pd.DataFrame(data)
 
-    print(f"Total Responses Analyzed: {len(scores)}")
-    print(f"Average Similarity Score: {statistics.mean(scores):.2f}")
-    print(f"Median Similarity Score: {statistics.median(scores):.2f}")
-
-    # Score distribution as a histogram with academic-style layout
-    plt.figure(figsize=(8, 4))
-    plt.suptitle('Evaluation of Generated Debate Without RAG', fontsize=16, y=1.05)
-    sns.histplot(scores, bins=5, kde=True, color="dodgerblue")
-    plt.title('Distribution of Similarity Scores', fontsize=14)
-    plt.xlabel('Similarity Score', fontsize=12)
-    plt.ylabel('Frequency', fontsize=12)
-    plt.xticks(range(1, 6))
+# Plot mean scores for all models and methods
+def plot_mean_scores(df):
+    plt.figure(figsize=(14, 7))
+    sns.barplot(x='Method', y='Overall Mean', hue='Model', data=df)
+    plt.title('Overall Mean Similarity Scores for Each Model and Method')
+    plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig('histogram_similarity_scores.png', dpi=300)  # Save for academic use
     plt.show()
 
-    # Box plot for academic presentation
-    plt.figure(figsize=(8, 2))
-    plt.suptitle('Evaluation of Generated Debate Without RAG', fontsize=16, y=1.2)
-    sns.boxplot(x=scores, color="lightgreen")
-    plt.title('Box Plot of Similarity Scores', fontsize=14)
-    plt.xlabel('Similarity Score', fontsize=12)
-    plt.tight_layout()
-    plt.savefig('boxplot_similarity_scores.png', dpi=300)  # Save for academic use
-    plt.show()
+# Plot candidate-specific mean scores for each model and method side by side
+def plot_candidate_scores(df):
+    for model in df['Model'].unique():
+        subset = df[df['Model'] == model]
+        
+        # Create subplots
+        fig, axes = plt.subplots(1, 2, figsize=(18, 7), sharey=True)
+        
+        # Plot for Trump
+        sns.barplot(x='Method', y='Trump Mean', data=subset, ax=axes[0], color='blue', alpha=0.6)
+        axes[0].set_title(f'Trump Mean Similarity Scores - {model}')
+        axes[0].set_xlabel('Method')
+        axes[0].set_xticklabels(axes[0].get_xticklabels(), rotation=45)
+        axes[0].set_ylabel('Mean Similarity Score')
+        
+        # Plot for Biden
+        sns.barplot(x='Method', y='Biden Mean', data=subset, ax=axes[1], color='orange', alpha=0.6)
+        axes[1].set_title(f'Biden Mean Similarity Scores - {model}')
+        axes[1].set_xlabel('Method')
+        axes[1].set_xticklabels(axes[1].get_xticklabels(), rotation=45)
+        axes[1].set_ylabel('')
 
-    # Violin plot for a detailed distribution view
-    plt.figure(figsize=(8, 4))
-    plt.suptitle('Evaluation of Generated Debate Without RAG', fontsize=16, y=1.05)
-    sns.violinplot(x=scores, color="lightcoral")
-    plt.title('Violin Plot of Similarity Scores', fontsize=14)
-    plt.xlabel('Similarity Score', fontsize=12)
-    plt.tight_layout()
-    plt.savefig('violinplot_similarity_scores.png', dpi=300)  # Save for academic use
-    plt.show()
+        # Adjust layout
+        plt.tight_layout()
+        plt.show()
 
+# Main function to execute the workflow
 def main():
-    # Load the JSON data from the generated debate file
-    debate_data = load_json_data('generated_debate_without_RAG.json')
+    candidate_mapping = load_candidates_from_real_json('debate_final_json.json')
+    json_files = {
+        'GPT-4o': [
+            'generated_debate_with_RAG_dense_using_gpt4o_evaluator.json',
+            'generated_debate_with_RAG_sparse_using_gpt4o_evaluator.json',
+            'generated_debate_with_RAG_hybrid_using_gpt4o_evaluator.json',
+            'generated_debate_without_RAG_using_gpt4o_evaluator.json'
+        ],
+        'Llama-3.2-90B-Vision-Instruct': [
+            'generated_debate_with_RAG_dense_using_Llama-3.2-90B-Vision-Instruct_evaluator.json',
+            'generated_debate_with_RAG_sparse_using_Llama-3.2-90B-Vision-Instruct_evaluator.json',
+            'generated_debate_with_RAG_hybrid_using_Llama-3.2-90B-Vision-Instruct_evaluator.json',
+            'generated_debate_without_RAG_using_Llama-3.2-90B-Vision-Instruct_evaluator.json'
+        ]
+    }
 
-    # Extract similarity scores
-    scores = extract_similarity_scores(debate_data)
+    all_scores = {}
+    for model, files in json_files.items():
+        all_scores[model] = {}
+        for file in files:
+            method = file.split('_using_')[0].replace('generated_debate_with_', '').replace('generated_debate_without_', 'Without_RAG')
+            candidate_scores = extract_scores_by_candidate(file, candidate_mapping)
+            all_scores[model][method] = candidate_scores
 
-    # Analyze and visualize the scores
-    analyze_scores(scores)
+    # Create a summary DataFrame
+    summary_df = create_summary_dataframe(all_scores)
+
+    # Plot the overall mean scores
+    plot_mean_scores(summary_df)
+
+    # Plot candidate-specific scores for each model and method side by side
+    plot_candidate_scores(summary_df)
 
 if __name__ == "__main__":
     main()

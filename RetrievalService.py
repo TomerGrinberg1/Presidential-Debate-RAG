@@ -68,25 +68,22 @@ class RetrievalService:
 
 
 
-    def index_documents(self, jsonl_file, sparse=True, dense=True, batch_size=64):
+    def index_documents(self, chunked_list, sparse=True, dense=True, batch_size=64):
         # Read documents
         documents = []
         doc_ids = []
         metadata = []
         texts_to_embed = []
 
-        with open(jsonl_file, 'r') as f:
-            for line in f:
-                data = json.loads(line)
-                prompt = truncate_text_to_bytes(data.get("prompt", ""))#TODO Check if can be deleted ( the trucatnion)
-                completion = truncate_text_to_bytes(data.get("completion", ""))
-                document = f"Prompt: {prompt}\nCompletion: {completion}"
-                # Generate a unique UUID for doc_id
-                doc_id = str(uuid.uuid4())
-                documents.append((doc_id, document))
-                doc_ids.append(doc_id)
-                metadata.append({"prompt": prompt, "completion": completion})
-                texts_to_embed.append(f"{prompt} {completion}")
+        for data in chunked_list:
+            title = truncate_text_to_bytes(data.get("title", ""))
+            content = truncate_text_to_bytes(data.get("content", ""))
+            document = f"title: {title}\n content: {content}"
+            doc_id = str(uuid.uuid4())
+            documents.append((doc_id, document))
+            doc_ids.append(doc_id)
+            metadata.append({"title": title, "content": content})
+            texts_to_embed.append(document)
 
         if sparse:
             print("Indexing documents for sparse retrieval using Whoosh...")
@@ -147,7 +144,7 @@ class RetrievalService:
         # Extract only the words from the keywords
         return [word for word, score in keywords]
 
-    def search_sparse(self, query, top_k=10):
+    def search_sparse(self, query, top_k=3):
         try:
             kw_model = KeyBERT()
             keyphrases = self.extract_keyphrases(kw_model,query)
@@ -171,7 +168,7 @@ class RetrievalService:
 
 
 
-    def search_dense(self, query, top_k=10):
+    def search_dense(self, query, top_k=3):
         """
         Perform a dense search using Pinecone.
 
@@ -200,7 +197,7 @@ class RetrievalService:
 
         return hits
 
-    def hybrid_search(self, query, top_k=10, alpha=0.5):
+    def hybrid_search(self, query, top_k=3, alpha=0.5):
         """
         Perform a hybrid search combining sparse and dense retrieval.
 
@@ -209,9 +206,9 @@ class RetrievalService:
         :param alpha: Weighting factor for dense scores (between 0 and 1).
         :return: List of (doc_id, combined_score) tuples.
         """
-        # Perform sparse and dense searches
-        sparse_hits = self.search_sparse(query, top_k=top_k)
-        dense_hits = self.search_dense(query, top_k=top_k)
+        initial_k = 12
+        sparse_hits = self.search_sparse(query, top_k=initial_k)
+        dense_hits = self.search_dense(query, top_k=initial_k)
 
         # Normalize scores
         max_sparse_score = max([score for _, score in sparse_hits], default=1)
@@ -252,10 +249,10 @@ class RetrievalService:
             if doc_id in vectors:
                 metadata = vectors[doc_id].get('metadata', {})
                 # Reconstruct the document content from metadata
-                prompt = metadata.get('prompt', '')
-                completion = metadata.get('completion', '')
-                content = f"Prompt: {prompt}\nCompletion: {completion}"
-                return content
+                title = metadata.get('title', '')
+                content = metadata.get('content', '')
+                result = f"title: {title}\n content: {content}"
+                return result
         except Exception as e:
             print(f"Error retrieving document by ID from Pinecone: {e}")
         
