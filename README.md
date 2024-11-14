@@ -43,12 +43,6 @@ We implemented three RAG methods:
 
 Each question-response pair was parsed into JSON format, and LangChain semantic chunking was used to segment the data. Dense, sparse, and hybrid retrieval methods were applied, and results were evaluated through an "ask LLM" framework, prompting the model to compare generated and real responses using a chain-of-thought reasoning approach.
 
-Here's a simpler Markdown-friendly version of the math equations for better readability in GitHub:
-
----
-
-Based on GitHub's support for LaTeX-style mathematical expressions, here is an optimized Markdown version with correct syntax for rendering math equations on GitHub:
-
 ---
 
 ### BM25 Ranking Function
