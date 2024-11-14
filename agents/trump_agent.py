@@ -1,4 +1,6 @@
 from agents.base_agent import BaseAgent
+
+
 class TrumpAgent(BaseAgent):
     def __init__(self):
         system_prompt = (
