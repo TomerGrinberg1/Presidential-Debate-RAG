@@ -212,6 +212,8 @@ cd frontend_website
 bash
 python app.py
 
+4)In order to change the simulation used for the game, add the JSON to the static folder, and apply changes in app.py and templates/game.html
+
 
 Access the app at http://localhost:5001.
 
