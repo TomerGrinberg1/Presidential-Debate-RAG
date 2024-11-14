@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import render_template
 
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from biden_agent import BidenAgent
-from trump_agent import TrumpAgent
+from agents.biden_agent import BidenAgent
+from agents.trump_agent import TrumpAgent
 
 import json
 from flask import Flask, request, jsonify

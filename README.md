@@ -21,7 +21,10 @@ This study presents an approach to simulating a U.S. presidential debate by empl
 
 ## Related Works
 
-RAG has emerged as a prominent method for reducing hallucinations in language models by grounding responses in reliable information sources. While dense retrieval methods like DPR and Contriever have been commonly used, recent studies suggest the superiority of sparse methods such as BM25 in generating contextually accurate responses. Hybrid retrieval, which combines dense and sparse methods, has shown promising results in enhancing response quality.
+RAG has emerged as a prominent method for reducing hallucinations in language models by grounding responses in 
+reliable information sources. While dense retrieval methods have been commonly used, recent studies suggest the 
+superiority of incorporating sparse methods such as BM25 in generating contextually accurate responses. Hybrid retrieval, 
+which combines dense and sparse methods, has shown promising results in enhancing response quality.
 
 ## Methodology
 

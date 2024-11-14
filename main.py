@@ -1,7 +1,7 @@
 import json
-from trump_agent import TrumpAgent
-from biden_agent import BidenAgent
-from eval_agent import EvalAgent
+from agents.trump_agent import TrumpAgent
+from agents.biden_agent import BidenAgent
+from agents.eval_agent import EvalAgent
 from RetrievalService import RetrievalService
 import time 
 
@@ -103,7 +103,7 @@ def generate_debate(debate_data, trump_agent, biden_agent, eval_agent, trump_ret
         print(f"Debate results saved to 'generated_debate_without_RAG_using_Llama-3.2-90B-Vision-Instruct_evaluator.json'.")
 
 def main():
-    debate_data = load_json_data("debate_final_json.json")
+    debate_data = load_json_data("chunked data/debate_final_json.json")
   
     PINECONE_API_KEY = ''
     PINECONE_ENVIRONMENT = 'us-east-1' 
